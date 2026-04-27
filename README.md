@@ -8,7 +8,8 @@ Outputs = Air time, Gas time
 
 
 **#How to add as app (offline compatible)**
-
+Click -> https://marcushpm.github.io/HPM-Gas-Dilution/ <-
+(See Below)
 **IOS**
 <img width="1000" height="696" alt="PWA_IOS" src="https://github.com/user-attachments/assets/5fb2d91f-50d9-4b0a-8d96-4a288cca1612" />
 
