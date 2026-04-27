@@ -2,61 +2,75 @@
 <html>
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Gas Dilution App</title>
+<title>Gas Dilution</title>
 
 <link rel="manifest" href="manifest.json">
 
 <style>
 body {
   font-family: Arial;
-  text-align: center;
-  margin: 0;
   background: #111;
   color: white;
+  margin: 0;
+  padding: 10px;
 }
 
 .container {
-  max-width: 420px;
+  max-width: 500px;
   margin: auto;
-  padding: 20px;
 }
+
+h2 {
+  text-align: center;
+}
+
+/* TABLE STYLE (Excel-like) */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+td {
+  border: 1px solid #333;
+  padding: 8px;
+}
+
+/* COLOR CODING */
+.label { background: #1c1c1c; }
+.input  { background: #1e3a5f; }
+.output { background: #3a1e2b; }
+.note   { background: #222; font-size: 12px; color: #aaa; }
 
 input {
   width: 100%;
-  padding: 14px;
-  font-size: 18px;
-  margin: 8px 0;
-  text-align: center;
-  border-radius: 10px;
+  background: transparent;
   border: none;
+  color: white;
+  font-size: 14px;
+  text-align: right;
+  outline: none;
 }
 
-.active {
-  outline: 3px solid #00c3ff;
-}
-
+/* keypad */
 .keypad {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 10px;
+  gap: 8px;
+  margin-top: 10px;
 }
 
 button {
-  padding: 18px;
-  font-size: 18px;
-  border-radius: 10px;
-  border: none;
+  padding: 15px;
+  font-size: 16px;
   background: #333;
   color: white;
+  border: none;
+  border-radius: 8px;
 }
-
 .result {
-  margin-top: 15px;
-  font-size: 16px;
-  text-align: left;
-}
-.error {
-  color: #ff4d4d;
+  margin-top: 10px;
+  font-size: 14px;
 }
 </style>
 </head>
@@ -65,13 +79,65 @@ button {
 
 <div class="container">
 
-<h2>Gas Dilution</h2>
+<h2>Gas Dilution Calculator</h2>
 
-<input id="cyl" placeholder="Cylinder ppm" onclick="setActive('cyl')" readonly>
-<input id="target" placeholder="Target ppm" onclick="setActive('target')" readonly>
-<input id="total" placeholder="Total Volume (L)" onclick="setActive('total')" readonly>
-<input id="flow" placeholder="Flow Rate (L/min)" onclick="setActive('flow')" readonly>
+<table>
+<tr>
+  <td class="label">Cylinder Concentration</td>
+  <td class="input"><input id="cyl" onclick="setActive('cyl')" readonly></td>
+  <td class="note">ppm</td>
+</tr>
 
+<tr>
+  <td class="label">Target Concentration</td>
+  <td class="input"><input id="target" onclick="setActive('target')" readonly></td>
+  <td class="note">ppm</td>
+</tr>
+
+<tr>
+  <td class="label">Total Bag Volume</td>
+  <td class="input"><input id="total" onclick="setActive('total')" readonly></td>
+  <td class="note">L</td>
+</tr>
+
+<tr>
+  <td class="label">Gas Volume</td>
+  <td class="output" id="gasVol">0</td>
+  <td class="note">L</td>
+</tr>
+
+<tr>
+  <td class="label">Air Volume</td>
+  <td class="output" id="airVol">0</td>
+  <td class="note">L</td>
+</tr>
+
+<tr>
+  <td class="label">Gas Flow Rate</td>
+  <td class="input"><input id="gflow" onclick="setActive('gflow')" readonly></td>
+  <td class="note">L/min</td>
+</tr>
+
+<tr>
+  <td class="label">Air Flow Rate</td>
+  <td class="input"><input id="aflow" onclick="setActive('aflow')" readonly></td>
+  <td class="note">L/min</td>
+</tr>
+
+<tr>
+  <td class="label">Gas Fill Time</td>
+  <td class="output" id="gasTime">00:00</td>
+  <td class="note">min</td>
+</tr>
+
+<tr>
+  <td class="label">Air Fill Time</td>
+  <td class="output" id="airTime">00:00</td>
+  <td class="note">min</td>
+</tr>
+</table>
+
+<!-- KEYPAD -->
 <div class="keypad">
   <button onclick="press(1)">1</button>
   <button onclick="press(2)">2</button>
@@ -87,8 +153,6 @@ button {
   <button onclick="clearField()">C</button>
 </div>
 
-<div class="result" id="output"></div>
-
 </div>
 
 <script>
@@ -96,8 +160,6 @@ let active = "cyl";
 
 function setActive(id) {
   active = id;
-  document.querySelectorAll("input").forEach(i => i.classList.remove("active"));
-  document.getElementById(id).classList.add("active");
 }
 
 function press(val) {
@@ -111,53 +173,37 @@ function clearField() {
   calculate();
 }
 
+/* format mm:ss */
+function formatTime(mins) {
+  if (!isFinite(mins) || mins < 0) return "00:00";
+  let m = Math.floor(mins);
+  let s = Math.round((mins - m) * 60);
+  if (s === 60) { m++; s = 0; }
+  return String(m).padStart(2,'0') + ":" + String(s).padStart(2,'0');
+}
+
 function calculate() {
   let cyl = parseFloat(document.getElementById("cyl").value);
   let target = parseFloat(document.getElementById("target").value);
   let total = parseFloat(document.getElementById("total").value);
-  let flow = parseFloat(document.getElementById("flow").value);
+  let gflow = parseFloat(document.getElementById("gflow").value);
+  let aflow = parseFloat(document.getElementById("aflow").value);
 
-  let out = document.getElementById("output");
+  if (!cyl || !target || !total || !gflow || !aflow) return;
 
-  // ---------------- ERROR CHECKING ----------------
-  if (!cyl || !target || !total || !flow) {
-    out.innerHTML = "";
-    return;
-  }
+  if (target > cyl) return;
 
-  if (cyl <= 0 || target <= 0 || total <= 0 || flow <= 0) {
-    out.innerHTML = "<div class='error'>Values must be greater than 0</div>";
-    return;
-  }
-
-  if (target > cyl) {
-    out.innerHTML = "<div class='error'>Target ppm cannot exceed cylinder ppm</div>";
-    return;
-  }
-
-  // ---------------- CALCULATIONS ----------------
   let gasVol = (target / cyl) * total;
   let airVol = total - gasVol;
 
-  let gasTime = gasVol / flow;
-  let airTime = airVol / flow;
+  let gasTime = gasVol / gflow;
+  let airTime = airVol / aflow;
 
-  if (airVol < 0) {
-    out.innerHTML = "<div class='error'>Invalid dilution result</div>";
-    return;
-  }
+  document.getElementById("gasVol").innerText = gasVol.toFixed(2);
+  document.getElementById("airVol").innerText = airVol.toFixed(2);
 
-  out.innerHTML =
-    `Gas Volume: ${gasVol.toFixed(3)} L<br>
-     Air Volume: ${airVol.toFixed(3)} L<br><br>
-     Gas Fill Time: ${gasTime.toFixed(2)} min<br>
-     Air Fill Time: ${airTime.toFixed(2)} min`;
-}
-</script>
-
-<script>
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('sw.js');
+  document.getElementById("gasTime").innerText = formatTime(gasTime);
+  document.getElementById("airTime").innerText = formatTime(airTime);
 }
 </script>
 
