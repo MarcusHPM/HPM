@@ -1,0 +1,17 @@
+{
+  "name": "Gas Dilution Calculator",
+  "short_name": "Gas Dilution",
+  "description": "HPM Systems — field tool for gas dilution volumes and fill times",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#ffffff",
+  "theme_color": "#ffffff",
+  "icons": [
+    { "src": "images/icon-192.png",  "sizes": "192x192",   "type": "image/png", "purpose": "any maskable" },
+    { "src": "images/icon-512.png",  "sizes": "512x512",   "type": "image/png", "purpose": "any maskable" },
+    { "src": "images/icon-1024.png", "sizes": "1024x1024", "type": "image/png", "purpose": "any" }
+  ],
+  "categories": ["utilities", "productivity"],
+  "lang": "en-US"
+}
